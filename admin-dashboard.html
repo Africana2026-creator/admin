@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admin Dashboard | Victoria Falls Transporters</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  background-image: url('/images/logo.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+header {
+  background: #0f3d2e;
+  color: white;
+  padding: 14px 20px;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: auto;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand img {
+  width: 56px;
+  height: 56px;
+  background: white;
+  border-radius: 12px;
+  padding: 4px;
+}
+
+.brand-text strong {
+  font-size: 1.1rem;
+}
+
+.brand-text span {
+  font-size: 0.75rem;
+  color: #f8d28c;
+  text-transform: uppercase;
+}
+
+.logout {
+  background: #b71c1c;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 20px auto;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.filters input,
+.filters button {
+  padding: 8px;
+}
+
+.filters button {
+  background: #1a5f3f;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+  background: #1a5f3f;
+  color: white;
+}
+
+.actions button {
+  margin: 3px;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.view { background: #6a1b9a; color: white; }
+.print { background: #0277bd; color: white; }
+.email { background: #2e7d32; color: white; }
+.delete { background: #c62828; color: white; }
+
+/* Modal */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 400px;
+  width: 90%;
+}
+
+.close {
+  float: right;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+/* Mobile */
+@media(max-width:768px){
+  table, thead, tbody, tr, td, th { display: block; }
+  thead { display: none; }
+  tr {
+    margin-bottom: 16px;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 6px;
+  }
+  td {
+    display: flex;
+    justify-content: space-between;
+  }
+  td::before {
+    content: attr(data-label);
+    font-weight: bold;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="navbar">
+    <div class="brand">
+      <img src="/images/logo.png" alt="Logo">
+      <div class="brand-text">
+        <strong>Victoria Falls Transporters</strong><br>
+        <span>Africana Tours</span>
+      </div>
+    </div>
+    <button class="logout" onclick="logout()">Logout</button>
+  </div>
+</header>
+
+<div class="container">
+  <h2>Booking Management Dashboard</h2>
+
+  <div class="filters">
+    <input type="text" id="searchInput" placeholder="Search name / email / service">
+    <input type="date" id="fromDate">
+    <input type="date" id="toDate">
+    <button onclick="applyFilters()">Search</button>
+    <button onclick="clearFilters()">Clear</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Ref</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Total</th>
+        <th>Date</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="bookingTable"></tbody>
+  </table>
+</div>
+
+<!-- SERVICES MODAL -->
+<div class="modal" id="servicesModal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal()">✖</span>
+    <h3>Booked Services</h3>
+    <ul id="servicesList"></ul>
+  </div>
+</div>
+
+<script>
+const API_BASE = "https://vft-backend.onrender.com";
+const token = localStorage.getItem("adminToken");
+
+if (!token) {
+  window.location.href = "admin-login.html";
+}
+
+let bookings = [];
+
+/* SECURITY */
+function escapeHTML(str = "") {
+  return str.replace(/[&<>"']/g, m => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;"
+  }[m]));
+}
+
+function handleUnauthorized(res) {
+  if (res.status === 401 || res.status === 403) {
+    alert("Session expired. Please login again.");
+    logout();
+    throw new Error("Unauthorized");
+  }
+  return res;
+}
+
+/* LOAD BOOKINGS */
+fetch(`${API_BASE}/api/admin/bookings`, {
+  headers: { Authorization: `Bearer ${token}` }
+})
+.then(handleUnauthorized)
+.then(res => res.json())
+.then(data => {
+  bookings = data;
+  renderTable(bookings);
+});
+
+/* RENDER TABLE */
+function renderTable(data) {
+  const table = document.getElementById("bookingTable");
+  table.innerHTML = "";
+
+  data.forEach((b, index) => {
+    table.innerHTML += `
+      <tr>
+        <td data-label="Ref">${escapeHTML(b.bookingRef)}</td>
+        <td data-label="Name">${escapeHTML(b.name)}</td>
+        <td data-label="Email">${escapeHTML(b.email)}</td>
+        <td data-label="Total">$${b.totalPrice}</td>
+        <td data-label="Date">${new Date(b.createdAt).toLocaleDateString()}</td>
+        <td data-label="Actions" class="actions">
+          <button class="view" onclick="viewServicesByIndex(${index})">👁 View</button>
+          <button class="print" onclick="printReceipt('${b._id}')">🖨 Print</button>
+          <button class="email" onclick="emailReceipt('${b._id}')">📧 Email</button>
+          <button class="delete" onclick="deleteBooking('${b._id}')">🗑 Delete</button>
+        </td>
+      </tr>
+    `;
+  });
+}
+
+/* SERVICES */
+function viewServicesByIndex(index) {
+  const list = document.getElementById("servicesList");
+  list.innerHTML = "";
+
+  bookings[index].services.forEach(s => {
+    const li = document.createElement("li");
+    li.textContent = `${s.name} - $${s.price}`;
+    list.appendChild(li);
+  });
+
+  document.getElementById("servicesModal").style.display = "flex";
+}
+
+function closeModal() {
+  document.getElementById("servicesModal").style.display = "none";
+}
+
+document.getElementById("servicesModal").addEventListener("click", e => {
+  if (e.target.id === "servicesModal") closeModal();
+});
+
+/* FILTERS */
+function applyFilters() {
+  const q = searchInput.value.toLowerCase();
+  const from = fromDate.value;
+  const to = toDate.value;
+
+  renderTable(bookings.filter(b => {
+    const textMatch =
+      b.name.toLowerCase().includes(q) ||
+      b.email.toLowerCase().includes(q) ||
+      b.services.some(s => s.name.toLowerCase().includes(q));
+
+    const d = new Date(b.createdAt).toISOString().split("T")[0];
+    return textMatch && (!from || d >= from) && (!to || d <= to);
+  }));
+}
+
+function clearFilters() {
+  searchInput.value = "";
+  fromDate.value = "";
+  toDate.value = "";
+  renderTable(bookings);
+}
+
+/* ACTIONS */
+function printReceipt(id) {
+  fetch(`${API_BASE}/api/admin/bookings/${id}/receipt`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  .then(handleUnauthorized)
+  .then(res => res.blob())
+  .then(blob => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "receipt.pdf";
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+}
+
+function emailReceipt(id) {
+  if (!confirm("Send receipt to customer email?")) return;
+
+  fetch(`${API_BASE}/api/admin/bookings/${id}/email-receipt`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  .then(handleUnauthorized)
+  .then(res => res.json())
+  .then(data => alert(data.message));
+}
+
+function deleteBooking(id) {
+  if (!confirm("Delete this booking permanently?")) return;
+
+  fetch(`${API_BASE}/api/admin/bookings/${id}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  .then(handleUnauthorized)
+  .then(() => {
+    bookings = bookings.filter(b => b._id !== id);
+    renderTable(bookings);
+  });
+}
+
+function logout() {
+  localStorage.removeItem("adminToken");
+  location.href = "admin-login.html";
+}
+</script>
+
+</body>
+</html>

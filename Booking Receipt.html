@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Booking Receipt</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 40px;
+  background: white;
+}
+
+.receipt {
+  max-width: 700px;
+  margin: auto;
+  border: 1px solid #ddd;
+  padding: 30px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-bottom: 2px solid #0f3d2e;
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+}
+
+.logo {
+  width: 70px;
+  height: 70px;
+  border-radius: 12px;
+  background: white;
+  padding: 6px;
+}
+
+.company h2 {
+  margin: 0;
+  color: #0f3d2e;
+}
+
+.company span {
+  font-size: 0.85rem;
+  color: #777;
+}
+
+.section {
+  margin-bottom: 18px;
+}
+
+.section h3 {
+  margin-bottom: 8px;
+  color: #0f3d2e;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 8px;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+}
+
+.total {
+  text-align: right;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.footer {
+  margin-top: 30px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #777;
+}
+
+@media print {
+  body {
+    padding: 0;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="receipt">
+  <div class="header">
+    <img src="images/logo.png" class="logo">
+    <div class="company">
+      <h2>Victoria Falls Transporters</h2>
+      <span>Africana Tours</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Customer Details</h3>
+    <p>
+      <strong>Name:</strong> <span id="name"></span><br>
+      <strong>Email:</strong> <span id="email"></span><br>
+      <strong>Booking Ref:</strong> <span id="ref"></span><br>
+      <strong>Date:</strong> <span id="date"></span>
+    </p>
+  </div>
+
+  <div class="section">
+    <h3>Booked Services</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Service</th>
+          <th>Price</th>
+        </tr>
+      </thead>
+      <tbody id="services"></tbody>
+    </table>
+  </div>
+
+  <p class="total">Total: $<span id="total"></span></p>
+
+  <div class="footer">
+    Thank you for booking with Victoria Falls Transporters – Africana Tours<br>
+    Safe travels & unforgettable experiences 🌍
+  </div>
+</div>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const id = params.get("id");
+
+fetch(`https://vft-backend.onrender.com/api/admin/bookings/${id}`)
+.then(res => res.json())
+.then(b => {
+  document.getElementById("name").textContent = b.name;
+  document.getElementById("email").textContent = b.email;
+  document.getElementById("ref").textContent = b.bookingRef;
+  document.getElementById("date").textContent =
+    new Date(b.createdAt).toLocaleDateString();
+
+  document.getElementById("total").textContent = b.totalPrice;
+
+  const services = document.getElementById("services");
+  b.services.forEach(s => {
+    services.innerHTML += `
+      <tr>
+        <td>${s.name}</td>
+        <td>$${s.price}</td>
+      </tr>`;
+  });
+
+  window.print();
+});
+</script>
+
+</body>
+</html>
