@@ -44,12 +44,15 @@ header {
 }
 
 .logout {
-  background: #b71c1c;
+  background: #f87e05;
   color: white;
   border: none;
   padding: 8px 14px;
   border-radius: 4px;
   cursor: pointer;
+}
+.logout:hover {
+  background: red;
 }
 
 .container {
@@ -67,6 +70,17 @@ header {
   border-radius: 4px;
   cursor: pointer;
 }
+.add{
+  background: #2e7d32;
+  color: white;
+  padding: 5px;
+  border: 1px solid lightblue;
+  border-radius: 10px;
+}
+.add:hover {
+  background: limegreen;
+}
+
 
 .view { background: #6a1b9a; color: white; }
 .print { background: #0277bd; color: white; }
@@ -84,7 +98,7 @@ header {
       <strong>Victoria Falls Transporters</strong>
     </div>
     <div>
-      <button onclick="goToAdminSetup()">➕ Add Admin</button>
+      <button class="add" onclick="goToAdminSetup()">➕ Add Admin</button>
       <button class="logout" onclick="logout()">Logout</button>
     </div>
   </div>
