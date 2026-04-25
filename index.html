@@ -16,6 +16,7 @@
     }
     .login-box {
       background: white;
+      border: 10px solid lightblue;
       padding: 30px;
       width: 320px;
       border-radius: 20px;
@@ -34,11 +35,29 @@
       border: none;
       cursor: pointer;
     }
+    button:hover {
+      background: limegreen;
+    }
+    .new {
+      background: #0f3d2e;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin-top: 10px;
+      padding: 10px;
+      width: 100%;
+      border: none;
+      border-radius: 10px;
+    }
+    .new:hover {
+        background: lightblue;
+      }
   </style>
 </head>
 <body>
 
 <div class="login-box">
+ 
   <img src="images/logo.png" style="width:100px;display:block;margin:auto;">
   <h2 style="text-align:center">Admin Login</h2>
 
@@ -47,7 +66,9 @@
     <input id="email" type="email" placeholder="Email" required>
     <input id="password" type="password" placeholder="Password" required>
     <button type="submit">Login</button>
+    <input type="submit" a href="admin-setup.html" value="Add New Admin" class="new" >
   </form>
+  
 </div>
 
 <script>
