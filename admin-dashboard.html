@@ -1,60 +1,207 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Admin Dashboard</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admin Dashboard | Victoria Falls Transporters</title>
+
 <style>
 body {
-  font-family: Arial;
-  background-image: url("images/logo.png");
+  font-family: Arial, sans-serif;
+  margin: 0;
+  background-image: url('/images/logo.png');
   background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
+
 header {
   background: #0f3d2e;
   color: white;
-  padding: 15px;
+  padding: 14px 20px;
 }
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: auto;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand img {
+  width: 56px;
+  height: 56px;
+  background: white;
+  border-radius: 12px;
+  padding: 4px;
+}
+
 .logout {
-  background: red;
+  background: #b71c1c;
   color: white;
   border: none;
-  padding: 8px;
+  padding: 8px 14px;
+  border-radius: 4px;
   cursor: pointer;
 }
+
+.container {
+  max-width: 1200px;
+  margin: 20px auto;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.actions button {
+  margin: 3px;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.view { background: #6a1b9a; color: white; }
+.print { background: #0277bd; color: white; }
+.email { background: #2e7d32; color: white; }
+.delete { background: #c62828; color: white; }
 </style>
 </head>
 
 <body>
 
 <header>
-  <h2>Admin Dashboard</h2>
-  <button class="logout" onclick="logout()">Logout</button>
+  <div class="navbar">
+    <div class="brand">
+      <img src="/images/logo.png">
+      <strong>Victoria Falls Transporters</strong>
+    </div>
+    <div>
+      <button onclick="goToAdminSetup()">➕ Add Admin</button>
+      <button class="logout" onclick="logout()">Logout</button>
+    </div>
+  </div>
 </header>
 
-<div id="content"></div>
+<div class="container">
+  <h2>Booking Management</h2>
+  <table width="100%">
+    <thead>
+      <tr>
+        <th>Ref</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Total</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="bookingTable"></tbody>
+  </table>
+</div>
 
 <script>
-const API = "https://vft-backend.onrender.com";
+const API_BASE = "https://vft-backend.onrender.com";
 const token = localStorage.getItem("adminToken");
 
 if (!token) {
   window.location.href = "index.html";
 }
 
-fetch(API + "/api/admin/bookings", {
+/* ONLY logout on real auth failure */
+function handleAuth(res) {
+  if (res.status === 401 || res.status === 403) {
+    localStorage.removeItem("adminToken");
+    alert("Session expired. Please login again.");
+    window.location.href = "index.html";
+    throw new Error("AUTH_EXPIRED");
+  }
+  return res;
+}
+
+let bookings = [];
+
+fetch(`${API_BASE}/api/admin/bookings`, {
   headers: { Authorization: `Bearer ${token}` }
 })
-.then(res => {
-  if (!res.ok) {
-    logout();
-    throw new Error("Unauthorized");
-  }
-  return res.json();
-})
+.then(handleAuth)
+.then(res => res.json())
 .then(data => {
-  document.getElementById("content").innerHTML =
-    "<pre>" + JSON.stringify(data, null, 2) + "</pre>";
+  bookings = data;
+  renderTable();
+})
+.catch(err => {
+  if (err.message !== "AUTH_EXPIRED") {
+    console.warn("Ignored error:", err);
+  }
 });
+
+function renderTable() {
+  const table = document.getElementById("bookingTable");
+  table.innerHTML = "";
+  bookings.forEach(b => {
+    table.innerHTML += `
+      <tr>
+        <td>${b.bookingRef}</td>
+        <td>${b.name}</td>
+        <td>${b.email}</td>
+        <td>$${b.totalPrice}</td>
+        <td class="actions">
+          <button class="print" onclick="printReceipt('${b._id}')">🖨</button>
+          <button class="email" onclick="emailReceipt('${b._id}')">📧</button>
+          <button class="delete" onclick="deleteBooking('${b._id}')">🗑</button>
+        </td>
+      </tr>`;
+  });
+}
+
+function printReceipt(id) {
+  fetch(`${API_BASE}/api/admin/bookings/${id}/receipt`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  .then(handleAuth)
+  .then(res => res.blob())
+  .then(blob => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "receipt.pdf";
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+}
+
+function emailReceipt(id) {
+  fetch(`${API_BASE}/api/admin/bookings/${id}/email-receipt`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  .then(handleAuth)
+  .then(res => res.json())
+  .then(data => alert(data.message));
+}
+
+function deleteBooking(id) {
+  fetch(`${API_BASE}/api/admin/bookings/${id}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  .then(handleAuth)
+  .then(() => {
+    bookings = bookings.filter(b => b._id !== id);
+    renderTable();
+  });
+}
+
+function goToAdminSetup() {
+  window.location.href = "admin-setup.html";
+}
 
 function logout() {
   localStorage.removeItem("adminToken");
