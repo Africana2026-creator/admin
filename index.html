@@ -71,31 +71,7 @@
   
 </div>
 
-<script>
-document.getElementById("loginForm").addEventListener("submit", async e => {
-  e.preventDefault();
-
-  const res = await fetch("https://vft-backend.onrender.com/api/admin/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      username: username.value.trim(),
-      email: email.value.trim().toLowerCase(),
-      password: password.value
-    })
-  });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    alert(data.message);
-    return;
-  }
-
-  localStorage.setItem("adminToken", data.token);
-  window.location.href = "admin-dashboard.html";
-});
-</script>
+<script src="admin-login.js"></script>
 
 </body>
 </html>
