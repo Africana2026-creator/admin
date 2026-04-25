@@ -2,7 +2,8 @@ function printReceipt(bookingId) {
   const token = localStorage.getItem("adminToken");
 
   if (!token) {
-    alert("You are not logged in");
+    alert("Session expired. Please login again.");
+    window.location.href = "index.html"; // admin login
     return;
   }
 
@@ -12,7 +13,9 @@ function printReceipt(bookingId) {
     }
   })
     .then(res => {
-      if (!res.ok) throw new Error("Unauthorized");
+      if (res.status === 401 || res.status === 403) {
+        throw new Error("TOKEN_EXPIRED");
+      }
       return res.blob();
     })
     .then(blob => {
@@ -27,6 +30,10 @@ function printReceipt(bookingId) {
     })
     .catch(err => {
       console.error(err);
+
+      // 🔐 force logout on expired token
+      localStorage.removeItem("adminToken");
       alert("Session expired. Please login again.");
+      window.location.href = "index.html"; // admin login
     });
 }
