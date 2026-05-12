@@ -4,9 +4,11 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Admin Dashboard | Victoria Falls Transporters</title>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
 <link rel="stylesheet" href="./css/style.css">
 </head>
 
@@ -33,7 +35,6 @@
 <main class="dashboard-container">
   <section class="dashboard-intro">
     <h2>Booking overview</h2>
-    <p>This dashboard now follows the enquiry dashboard styling so both admin pages feel like the same system, while keeping all existing booking actions and JavaScript behavior unchanged.</p>
   </section>
 
   <section class="dashboard-panel">
@@ -60,13 +61,14 @@ const API_BASE =
   window.location.hostname === "127.0.0.1"
     ? "http://localhost:5000"
     : "https://vft-backend.onrender.com";
+
 const token = localStorage.getItem("adminToken");
 
 if (!token) {
   window.location.href = "index.html";
 }
 
-/* ONLY logout on real auth failure */
+/* Logout ONLY on real auth failure */
 function handleAuth(res) {
   if (res.status === 401 || res.status === 403) {
     localStorage.removeItem("adminToken");
@@ -97,7 +99,6 @@ fetch(`${API_BASE}/api/admin/bookings`, {
 .catch(err => {
   if (err.message !== "AUTH_EXPIRED") {
     alert(err.message || "Failed to fetch bookings");
-    console.warn("Ignored error:", err);
   }
 });
 
@@ -109,8 +110,7 @@ function renderTable() {
     table.innerHTML = `
       <tr>
         <td colspan="5" style="text-align:center; padding:1rem;">No bookings found</td>
-      </tr>
-    `;
+      </tr>`;
     return;
   }
 
@@ -123,9 +123,9 @@ function renderTable() {
         <td>$${b.totalPrice}</td>
         <td class="actions">
           <button class="view-btn" onclick="viewBookingServices('${b._id}')">View</button>
-          <button class="print" onclick="printReceipt('${b._id}')">🖨</button>
-          <button class="email" onclick="emailReceipt('${b._id}')">📧</button>
-          <button class="delete" onclick="deleteBooking('${b._id}')">🗑</button>
+          <button class="print" onclick="printReceipt('${b._id}')">Print</button>
+          <button class="email" onclick="emailReceipt('${b._id}')">Email</button>
+          <button class="delete" onclick="deleteBooking('${b._id}')">Delete</button>
         </td>
       </tr>`;
   });
@@ -139,21 +139,16 @@ function viewBookingServices(id) {
   }
 
   const services = Array.isArray(booking.services) && booking.services.length
-    ? booking.services.map((service, index) => {
-        const price = service?.price ?? 0;
-        return `${index + 1}. ${service?.name || "Unnamed service"} - $${price}`;
-      }).join("\n")
+    ? booking.services.map((s, i) =>
+        `${i + 1}. ${s?.name || "Unnamed service"} - $${s?.price ?? 0}`
+      ).join("\n")
     : "No services recorded.";
 
   alert(`
-Booking Ref: ${booking.bookingRef || "-"}
-Customer: ${booking.name || "-"}
-Email: ${booking.email || "-"}
-Guests: ${booking.guests || "-"}
-Arrival Date: ${booking.arrivalDate || "-"}
-Arrival Time: ${booking.arrivalTime || "-"}
-Pickup Location: ${booking.pickupLocation || "-"}
-Total: $${booking.totalPrice ?? "-"}
+Booking Ref: ${booking.bookingRef}
+Customer: ${booking.name}
+Email: ${booking.email}
+Total: $${booking.totalPrice}
 
 Selected Services:
 ${services}
@@ -182,13 +177,7 @@ function emailReceipt(id) {
     headers: { Authorization: `Bearer ${token}` }
   })
   .then(handleAuth)
-  .then(async res => {
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      throw new Error(data.message || "Failed to email receipt");
-    }
-    return data;
-  })
+  .then(res => res.json())
   .then(data => alert(data.message))
   .catch(err => {
     if (err.message !== "AUTH_EXPIRED") {
@@ -203,13 +192,7 @@ function deleteBooking(id) {
     headers: { Authorization: `Bearer ${token}` }
   })
   .then(handleAuth)
-  .then(async res => {
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      throw new Error(data.message || "Failed to delete booking");
-    }
-    return data;
-  })
+  .then(res => res.json())
   .then(() => {
     bookings = bookings.filter(b => b._id !== id);
     renderTable();
