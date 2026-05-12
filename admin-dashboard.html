@@ -4,140 +4,62 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Admin Dashboard | Victoria Falls Transporters</title>
-<link rel="stylesheet" href="../css/style.css">
-
-<style>
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  background-image: url('/images/logo.png');
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-}
-
-header {
-  background: #0f3d2e;
-  color: white;
-  padding: 14px 20px;
-}
-
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  max-width: 1200px;
-  margin: auto;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.brand img {
-  width: 56px;
-  height: 56px;
-  background: white;
-  border-radius: 12px;
-  padding: 4px;
-}
-
-.logout {
-  background: #f87e05;
-  color: white;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.logout:hover {
-  background: red;
-}
-
-.container {
-  max-width: 1200px;
-  margin: 20px auto;
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-}
-
-.actions button {
-  margin: 3px;
-  padding: 6px 10px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.add{
-  background: #2e7d32;
-  color: white;
-  padding: 5px;
-  border: 1px solid lightblue;
-  border-radius: 10px;
-}
-.add:hover {
-  background: limegreen;
-}
-
-.nav-button {
-  background: #1565c0;
-  color: white;
-  padding: 8px 14px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  margin-right: 8px;
-}
-
-.nav-button:hover {
-  background: #0d47a1;
-}
-
-
-.view { background: #6a1b9a; color: white; }
-.print { background: #0277bd; color: white; }
-.email { background: #2e7d32; color: white; }
-.delete { background: #c62828; color: white; }
-</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./css/style.css">
 </head>
 
-<body>
+<body class="admin-dashboard-page">
 
-<header>
-  <div class="navbar">
-    <div class="brand">
-      <img src="/images/logo.png">
-      <strong>Victoria Falls Transporters</strong>
+<header class="admin-header">
+  <div class="admin-header-inner">
+    <div class="admin-brand">
+      <img src="images/logo.png" alt="Victoria Falls Transporters logo" class="admin-logo">
+      <div class="admin-brand-copy">
+        <p class="admin-kicker">Victoria Falls Transporters</p>
+        <h1>Booking Management Dashboard</h1>
+        <span>Review booking records, send receipts, and keep booking actions in one polished workspace.</span>
+      </div>
     </div>
-    <div>
-      <button class="nav-button" onclick="goToEnquiryDashboard()">Enquiry Dashboard</button>
-      <button class="add" onclick="goToAdminSetup()">➕ Add Admin</button>
-      <button class="logout" onclick="logout()">Logout</button>
+    <div class="admin-actions">
+      <button class="admin-btn-secondary" type="button" onclick="goToEnquiryDashboard()">Enquiry Dashboard</button>
+      <button class="admin-btn" type="button" onclick="goToAdminSetup()">Add Admin</button>
+      <button class="admin-btn-danger" type="button" onclick="logout()">Logout</button>
     </div>
   </div>
 </header>
 
-<div class="container">
-  <h2>Booking Management</h2>
-  <table width="100%">
-    <thead>
-      <tr>
-        <th>Ref</th>
-        <th>Name</th>
-        <th>Email</th>
-        <th>Total</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody id="bookingTable"></tbody>
-  </table>
-</div>
+<main class="dashboard-container">
+  <section class="dashboard-intro">
+    <h2>Booking overview</h2>
+    <p>This dashboard now follows the enquiry dashboard styling so both admin pages feel like the same system, while keeping all existing booking actions and JavaScript behavior unchanged.</p>
+  </section>
+
+  <section class="dashboard-panel">
+    <div class="table-shell">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Ref</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Total</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="bookingTable"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
 
 <script>
-const API_BASE = "https://vft-backend.onrender.com";
+const API_BASE =
+  window.location.hostname === "localhost" ||
+  window.location.hostname === "127.0.0.1"
+    ? "http://localhost:5000"
+    : "https://vft-backend.onrender.com";
 const token = localStorage.getItem("adminToken");
 
 if (!token) {
@@ -161,13 +83,20 @@ fetch(`${API_BASE}/api/admin/bookings`, {
   headers: { Authorization: `Bearer ${token}` }
 })
 .then(handleAuth)
-.then(res => res.json())
+.then(async res => {
+  const data = await res.json().catch(() => ([]));
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to fetch bookings");
+  }
+  return data;
+})
 .then(data => {
   bookings = data;
   renderTable();
 })
 .catch(err => {
   if (err.message !== "AUTH_EXPIRED") {
+    alert(err.message || "Failed to fetch bookings");
     console.warn("Ignored error:", err);
   }
 });
@@ -175,6 +104,16 @@ fetch(`${API_BASE}/api/admin/bookings`, {
 function renderTable() {
   const table = document.getElementById("bookingTable");
   table.innerHTML = "";
+
+  if (!bookings.length) {
+    table.innerHTML = `
+      <tr>
+        <td colspan="5" style="text-align:center; padding:1rem;">No bookings found</td>
+      </tr>
+    `;
+    return;
+  }
+
   bookings.forEach(b => {
     table.innerHTML += `
       <tr>
@@ -183,12 +122,42 @@ function renderTable() {
         <td>${b.email}</td>
         <td>$${b.totalPrice}</td>
         <td class="actions">
+          <button class="view-btn" onclick="viewBookingServices('${b._id}')">View</button>
           <button class="print" onclick="printReceipt('${b._id}')">🖨</button>
           <button class="email" onclick="emailReceipt('${b._id}')">📧</button>
           <button class="delete" onclick="deleteBooking('${b._id}')">🗑</button>
         </td>
       </tr>`;
   });
+}
+
+function viewBookingServices(id) {
+  const booking = bookings.find(item => item._id === id);
+  if (!booking) {
+    alert("Booking not found.");
+    return;
+  }
+
+  const services = Array.isArray(booking.services) && booking.services.length
+    ? booking.services.map((service, index) => {
+        const price = service?.price ?? 0;
+        return `${index + 1}. ${service?.name || "Unnamed service"} - $${price}`;
+      }).join("\n")
+    : "No services recorded.";
+
+  alert(`
+Booking Ref: ${booking.bookingRef || "-"}
+Customer: ${booking.name || "-"}
+Email: ${booking.email || "-"}
+Guests: ${booking.guests || "-"}
+Arrival Date: ${booking.arrivalDate || "-"}
+Arrival Time: ${booking.arrivalTime || "-"}
+Pickup Location: ${booking.pickupLocation || "-"}
+Total: $${booking.totalPrice ?? "-"}
+
+Selected Services:
+${services}
+`);
 }
 
 function printReceipt(id) {
@@ -213,8 +182,19 @@ function emailReceipt(id) {
     headers: { Authorization: `Bearer ${token}` }
   })
   .then(handleAuth)
-  .then(res => res.json())
-  .then(data => alert(data.message));
+  .then(async res => {
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to email receipt");
+    }
+    return data;
+  })
+  .then(data => alert(data.message))
+  .catch(err => {
+    if (err.message !== "AUTH_EXPIRED") {
+      alert(err.message || "Failed to email receipt");
+    }
+  });
 }
 
 function deleteBooking(id) {
@@ -223,9 +203,21 @@ function deleteBooking(id) {
     headers: { Authorization: `Bearer ${token}` }
   })
   .then(handleAuth)
+  .then(async res => {
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to delete booking");
+    }
+    return data;
+  })
   .then(() => {
     bookings = bookings.filter(b => b._id !== id);
     renderTable();
+  })
+  .catch(err => {
+    if (err.message !== "AUTH_EXPIRED") {
+      alert(err.message || "Failed to delete booking");
+    }
   });
 }
 
@@ -242,7 +234,6 @@ function logout() {
   window.location.href = "index.html";
 }
 </script>
-<script src="./js/enquiries.js"></script>
 
 </body>
 </html>

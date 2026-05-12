@@ -4,155 +4,35 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Enquiry Dashboard | Victoria Falls Transporters</title>
-
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./css/style.css">
-
-  <style>
-    body {
-      font-family: "Manrope", sans-serif;
-      background: #f5f6f8;
-      margin: 0;
-    }
-
-    header {
-      background: #0f172a;
-      color: white;
-      padding: 1rem 2rem;
-    }
-
-    header h1 {
-      margin: 0;
-      font-size: 1.4rem;
-    }
-
-    .dashboard-container {
-      padding: 2rem;
-    }
-
-    /* ===== STATS ===== */
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
-      margin-bottom: 2rem;
-    }
-
-    .stat-card {
-      background: white;
-      padding: 1.5rem;
-      border-radius: 10px;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-    }
-
-    .stat-card h3 {
-      margin: 0;
-      font-size: 0.9rem;
-      color: #64748b;
-    }
-
-    .stat-card p {
-      font-size: 1.8rem;
-      font-weight: 700;
-      margin-top: 0.5rem;
-    }
-
-    /* ===== FILTER BAR ===== */
-    .filter-bar {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-      flex-wrap: wrap;
-    }
-
-    .filter-bar input,
-    .filter-bar select {
-      padding: 0.6rem 0.8rem;
-      border-radius: 6px;
-      border: 1px solid #cbd5f5;
-      font-size: 0.9rem;
-    }
-
-    /* ===== TABLE ===== */
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: white;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-    }
-
-    th, td {
-      padding: 0.9rem;
-      border-bottom: 1px solid #e5e7eb;
-      text-align: left;
-      font-size: 0.85rem;
-    }
-
-    th {
-      background: #f1f5f9;
-      font-weight: 600;
-    }
-
-    tr:hover {
-      background: #f9fafb;
-    }
-
-    .status {
-      padding: 0.3rem 0.6rem;
-      border-radius: 999px;
-      font-size: 0.75rem;
-      font-weight: 600;
-    }
-
-    .status.new { background: #dbeafe; color: #1e40af; }
-    .status.contacted { background: #fef3c7; color: #92400e; }
-    .status.confirmed { background: #dcfce7; color: #166534; }
-    .status.cancelled { background: #fee2e2; color: #991b1b; }
-
-    .status-dropdown {
-  padding: 6px;
-  border-radius: 6px;
-  font-weight: 600;
-}
-
-.status-dropdown.new {
-  background: #e3f2fd;
-}
-
-.status-dropdown.contacted {
-  background: #fff3cd;
-}
-
-.status-dropdown.confirmed {
-  background: #d4edda;
-}
-
-.status-dropdown.cancelled {
-  background: #f8d7da;
-}
-
-    .actions button {
-      border: none;
-      background: none;
-      cursor: pointer;
-      font-size: 0.8rem;
-      margin-right: 0.5rem;
-    }
-
-    .view-btn { color: #2563eb; }
-    .delete-btn { color: #dc2626; }
-  </style>
 </head>
-<body>
+<body class="admin-dashboard-page">
 
-<header>
-  <h1>Accommodation Enquiries Dashboard</h1>
+<header class="admin-header">
+  <div class="admin-header-inner">
+    <div class="admin-brand">
+      <img src="images/logo.png" alt="Victoria Falls Transporters logo" class="admin-logo">
+      <div class="admin-brand-copy">
+        <p class="admin-kicker">Victoria Falls Transporters</p>
+        <h1>Accommodation Enquiries Dashboard</h1>
+        <span>Track new requests, confirm follow-ups, and keep the guest pipeline organized.</span>
+      </div>
+    </div>
+    <div class="admin-actions">
+      <button class="admin-btn-secondary" type="button" onclick="window.location.href='admin-dashboard.html'">Back to Admin Dashboard</button>
+    </div>
+  </div>
 </header>
 
 <main class="dashboard-container">
+  <section class="dashboard-intro">
+    <h2>Enquiry overview</h2>
+    <p>Use the filters below to find guests quickly, check booking intent at a glance, and update enquiry statuses while keeping the layout clean and easy to scan.</p>
+  </section>
 
-  <!-- ===== STATS ===== -->
   <section class="stats">
     <div class="stat-card">
       <h3>Total Enquiries</h3>
@@ -172,35 +52,37 @@
     </div>
   </section>
 
-  <!-- ===== FILTER BAR ===== -->
-  <div class="filter-bar">
-    <input type="text" id="searchInput" placeholder="Search name, email, phone" />
-    <select id="statusFilter">
-      <option value="">All Status</option>
-      <option value="new">New</option>
-      <option value="contacted">Contacted</option>
-      <option value="confirmed">Confirmed</option>
-      <option value="cancelled">Cancelled</option>
-    </select>
-  </div>
+  <section class="dashboard-panel">
+    <div class="filter-bar">
+      <input type="text" id="searchInput" placeholder="Search name, email, phone" />
+      <select id="statusFilter">
+        <option value="">All Status</option>
+        <option value="new">New</option>
+        <option value="contacted">Contacted</option>
+        <option value="confirmed">Confirmed</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+    </div>
 
-  <!-- ===== TABLE ===== -->
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Email</th>
-        <th>Room</th>
-        <th>Check-in</th>
-        <th>Check-out</th>
-        <th>Status</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody id="enquiryTable">
-      <!-- JS will inject rows here -->
-    </tbody>
-  </table>
+    <div class="table-shell">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Room</th>
+            <th>Check-in</th>
+            <th>Check-out</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="enquiryTable">
+          <!-- JS will inject rows here -->
+        </tbody>
+      </table>
+    </div>
+  </section>
 
 </main>
 

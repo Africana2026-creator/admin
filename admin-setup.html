@@ -2,48 +2,28 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Setup</title>
-
-<style>
-body {
-  font-family: Arial;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  background-image: url("images/logo.png");
-}
-.box {
-  background: white;
-  padding: 30px;
-  width: 320px;
-  border-radius: 20px;
-}
-input, button {
-  width: 100%;
-  padding: 10px;
-  margin-top: 10px;
-}
-button {
-  background: #1b5e3c;
-  color: white;
-  border: none;
-  border-radius: 15px;
-}
-</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./css/style.css">
 </head>
 
-<body>
+<body class="admin-auth-page">
 
-<div class="box">
+<main class="auth-card">
+  <img src="images/logo.png" alt="Victoria Falls Transporters logo" class="auth-logo">
+  <p class="auth-kicker">Victoria Falls Transporters</p>
   <h2>Initial Admin Setup</h2>
-  <form id="setupForm">
+  <p class="auth-copy">Create an additional admin account without changing any of the existing setup logic.</p>
+  <form id="setupForm" class="auth-form">
     <input type="text" id="username" placeholder="Username" required>
     <input type="email" id="email" placeholder="Email" required>
     <input type="password" id="password" placeholder="Password" required>
-    <button>Create Admin</button>
+    <button class="auth-submit">Create Admin</button>
   </form>
-</div>
+</main>
 
 <script>
 const token = localStorage.getItem("adminToken");
