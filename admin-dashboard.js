@@ -49,22 +49,40 @@ function renderBookings(bookings) {
   tbody.innerHTML = "";
 
   if (!Array.isArray(bookings) || bookings.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5">No bookings found</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6">No bookings found</td></tr>`;
     return;
   }
 
   bookings.forEach(b => {
     const row = document.createElement("tr");
     row.innerHTML = `
-      <td>${b.ref || "-"}</td>
+      <td>${b.bookingRef || "-"}</td>
       <td>${b.name || "-"}</td>
       <td>${b.email || "-"}</td>
-      <td>${b.total || "-"}</td>
+      <td>${formatArrivalDate(b.arrivalDate)}</td>
+      <td>${b.totalPrice || "-"}</td>
       <td>
         <button onclick="printReceipt('${b._id}')">Receipt</button>
       </td>
     `;
     tbody.appendChild(row);
+  });
+}
+
+function formatArrivalDate(arrivalDate) {
+  if (!arrivalDate) {
+    return "Not provided";
+  }
+
+  const parsedDate = new Date(arrivalDate);
+  if (Number.isNaN(parsedDate.getTime())) {
+    return arrivalDate;
+  }
+
+  return parsedDate.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric"
   });
 }
 

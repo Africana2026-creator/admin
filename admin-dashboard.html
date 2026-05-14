@@ -44,6 +44,7 @@
             <th>Ref</th>
             <th>Name</th>
             <th>Email</th>
+            <th>Arrival Date</th>
             <th>Total</th>
             <th>Actions</th>
           </tr>
@@ -80,6 +81,23 @@ function handleAuth(res) {
 
 let bookings = [];
 
+function formatArrivalDate(arrivalDate) {
+  if (!arrivalDate) {
+    return "Not provided";
+  }
+
+  const parsedDate = new Date(arrivalDate);
+  if (Number.isNaN(parsedDate.getTime())) {
+    return arrivalDate;
+  }
+
+  return parsedDate.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric"
+  });
+}
+
 fetch(`${API_BASE}/api/admin/bookings`, {
   headers: { Authorization: `Bearer ${token}` }
 })
@@ -108,7 +126,7 @@ function renderTable() {
   if (!bookings.length) {
     table.innerHTML = `
       <tr>
-        <td colspan="5" style="text-align:center; padding:1rem;">No bookings found</td>
+        <td colspan="6" style="text-align:center; padding:1rem;">No bookings found</td>
       </tr>`;
     return;
   }
@@ -119,11 +137,11 @@ function renderTable() {
         <td>${b.bookingRef}</td>
         <td>${b.name}</td>
         <td>${b.email}</td>
+        <td>${formatArrivalDate(b.arrivalDate)}</td>
         <td>$${b.totalPrice}</td>
         <td class="actions">
           <button class="view-btn" onclick="viewBookingServices('${b._id}')">View</button>
           <button class="print" onclick="printReceipt('${b._id}')">Print</button>
-          <button class="email" onclick="emailReceipt('${b._id}')">Email</button>
           <button class="delete" onclick="deleteBooking('${b._id}')">Delete</button>
         </td>
       </tr>`;
@@ -147,6 +165,7 @@ function viewBookingServices(id) {
 Booking Ref: ${booking.bookingRef}
 Customer: ${booking.name}
 Email: ${booking.email}
+Arrival Date: ${formatArrivalDate(booking.arrivalDate)}
 Total: $${booking.totalPrice}
 
 Selected Services:
@@ -174,27 +193,6 @@ function printReceipt(id) {
     URL.revokeObjectURL(url);
   })
   .catch(err => alert(err.message));
-}
-
-function emailReceipt(id) {
-  fetch(`${API_BASE}/api/admin/bookings/${id}/email-receipt`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}` }
-  })
-  .then(handleAuth)
-  .then(async res => {
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      throw new Error(data.message || "Failed to email receipt");
-    }
-    return data;
-  })
-  .then(data => alert(data.message || "Receipt emailed successfully"))
-  .catch(err => {
-    if (err.message !== "AUTH_EXPIRED") {
-      alert(err.message || "Failed to email receipt");
-    }
-  });
 }
 
 function deleteBooking(id) {
