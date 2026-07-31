@@ -141,10 +141,14 @@ th {
 </div>
 
 <script>
+const API_BASE_URL = window.location.hostname === "localhost"
+  || window.location.hostname === "127.0.0.1"
+  ? "http://localhost:5000"
+  : "https://vft-backend.onrender.com";
 const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
 
-fetch(`https://vft-backend.onrender.com/api/admin/bookings/${id}`)
+fetch(`${API_BASE_URL}/api/admin/bookings/${id}`)
 .then(res => res.json())
 .then(b => {
   document.getElementById("name").textContent = b.name;

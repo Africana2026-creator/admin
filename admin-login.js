@@ -1,3 +1,7 @@
+const API_BASE_URL = window.location.hostname === "localhost"
+  || window.location.hostname === "127.0.0.1"
+  ? "http://localhost:5000"
+  : "https://vft-backend.onrender.com";
 const form = document.getElementById("loginForm");
 
 form.addEventListener("submit", async (e) => {
@@ -9,13 +13,13 @@ form.addEventListener("submit", async (e) => {
 
   try {
    const res = await fetch(
-  "https://vft-backend.onrender.com/api/admin/login",
-  {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, email, password })
-  }
-);
+     `${API_BASE_URL}/api/admin/login`,
+     {
+       method: "POST",
+       headers: { "Content-Type": "application/json" },
+       body: JSON.stringify({ username, email, password })
+     }
+   );
 
     const data = await res.json();
 

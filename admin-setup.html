@@ -26,6 +26,10 @@
 </main>
 
 <script>
+const API_BASE_URL = window.location.hostname === "localhost"
+  || window.location.hostname === "127.0.0.1"
+  ? "http://localhost:5000"
+  : "https://vft-backend.onrender.com";
 const token = localStorage.getItem("adminToken");
 if (!token) {
   alert("Unauthorized");
@@ -36,7 +40,7 @@ document.getElementById("setupForm").addEventListener("submit", async e => {
   e.preventDefault();
 
   const res = await fetch(
-    "https://vft-backend.onrender.com/api/admin/setup",
+    `${API_BASE_URL}/api/admin/setup`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
